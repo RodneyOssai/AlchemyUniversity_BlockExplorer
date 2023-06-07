@@ -1,29 +1,21 @@
+import React, { useEffect, useState } from 'react';
 import { Alchemy, Network } from 'alchemy-sdk';
-import { useEffect, useState } from 'react';
 
 import './App.css';
 
-// Refer to the README doc for more information about using API
-// keys in client-side code. You should never do this in production
-// level code.
 const settings = {
   apiKey: process.env.REACT_APP_ALCHEMY_API_KEY,
   network: Network.ETH_MAINNET,
 };
 
-
-// In this week's lessons we used ethers.js. Here we are using the
-// Alchemy SDK is an umbrella library with several different packages.
-//
-// You can read more about the packages here:
-//   https://docs.alchemy.com/reference/alchemy-sdk-api-surface-overview#api-surface
 const alchemy = new Alchemy(settings);
 
 function App() {
-  const [blockNumber, setBlockNumber] = useState();
+  const [blockNumber, setBlockNumber] = useState(null);
   const [blockDetails, setBlockDetails] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
   const [showTransactionTable, setShowTransactionTable] = useState(false);
+  const [expandedTransaction, setExpandedTransaction] = useState(null);
 
   useEffect(() => {
     async function getBlockNumber() {
@@ -33,8 +25,6 @@ function App() {
     getBlockNumber();
   }, []);
 
-
-  
   const handleClick = async () => {
     if (blockNumber) {
       setIsLoading(true);
@@ -42,26 +32,33 @@ function App() {
       setIsLoading(false);
     }
   };
+
   const handleTransactionClick = () => {
     setShowTransactionTable(!showTransactionTable);
+    setExpandedTransaction(null);
+  };
+
+  const handleTransactionItemClick = (transactionIndex) => {
+    setExpandedTransaction(transactionIndex);
+  };
+
+  const handleCollapse = () => {
+    setExpandedTransaction(null);
   };
 
   let displayText;
   if (isLoading) {
     displayText = 'Loading block details...';
   } else if (blockDetails) {
-    displayText = `Block Details for `;
-    console.log(blockDetails);
+    displayText = `Block Details for ${blockNumber}`;
   } else {
     displayText = 'Block Number: ';
   }
 
-
   return (
     <div className="App">
-      {displayText}
       <span className="ClickableBlockNumber App-link" onClick={handleClick}>
-      {blockNumber}
+        {displayText}
       </span>
       {blockDetails ? (
         <div>
@@ -77,12 +74,12 @@ function App() {
                 <td>{blockDetails.parentHash}</td>
               </tr>
               <tr>
-                <td>Number:</td>
+                <td>BlockHeight:</td>
                 <td>{blockDetails.number}</td>
               </tr>
               <tr>
                 <td>Timestamp:</td>
-                <td>{blockDetails.timestamp}</td>
+                <td>{new Date(blockDetails.timestamp * 1000).toLocaleString() }</td>
               </tr>
               <tr>
                 <td>Nonce:</td>
@@ -94,11 +91,11 @@ function App() {
               </tr>
               <tr>
                 <td>Gas Limit:</td>
-                <td>{blockDetails.gasLimit.toNumber()}</td>
+                <td>{ Number(blockDetails.gasLimit.toNumber()).toLocaleString()}</td>
               </tr>
               <tr>
                 <td>Gas Used:</td>
-                <td>{blockDetails.gasUsed.toNumber()}</td>
+                <td>{ Number(blockDetails.gasUsed.toNumber()).toLocaleString()}</td>
               </tr>
               <tr>
                 <td>Miner:</td>
@@ -106,7 +103,12 @@ function App() {
               </tr>
               <tr>
                 <td>Transaction Count:</td>
-                <td className="ClickableBlockNumber App-link" onClick={handleTransactionClick}>{blockDetails.transactions.length} transactions</td>
+                <td
+                  className="ClickableBlockNumber App-link"
+                  onClick={handleTransactionClick}
+                >
+                  {blockDetails.transactions.length} transactions
+                </td>
               </tr>
             </tbody>
           </table>
@@ -114,15 +116,41 @@ function App() {
       ) : (
         <div>No block details available.</div>
       )}
-      {showTransactionTable && blockDetails && blockDetails.transactions && (
+       {showTransactionTable && blockDetails && (
         <div>
           <h3>Block Transactions List</h3>
           <table className="BlockDetailsTable">
             <tbody>
               {blockDetails.transactions.map((transaction, index) => (
-                <tr key={index}>
-                  <td>{transaction.hash}</td>
-                </tr>
+                <React.Fragment key={index}>
+                  <tr
+                    className={`TransactionItem ${
+                      expandedTransaction === index ? 'expanded' : ''
+                    } App-link` } 
+                    onClick={() => handleTransactionItemClick(index)}
+                  >
+                    <td>{transaction.hash}</td>
+                  </tr>
+                  {expandedTransaction === index && (
+                    <tr className="TransactionDetails">
+                      <td colSpan="2">
+                        <table>
+                          <tbody>
+                            <tr>
+                              <td>From:</td>
+                              <td>{transaction.from}</td>
+                            </tr>
+                            <tr>
+                              <td>To:</td>
+                              <td>{transaction.to}</td>
+                            </tr>
+                            {/* Add more transaction details as needed */}
+                          </tbody>
+                        </table>
+                      </td>
+                    </tr>
+                  )}
+                </React.Fragment>
               ))}
             </tbody>
           </table>
