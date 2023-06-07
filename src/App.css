@@ -1,5 +1,6 @@
 .App {
-  text-align: center;
+  padding: 20px;
+  color: #333;
 }
 
 .App-logo {
@@ -26,6 +27,39 @@
 
 .App-link {
   color: #61dafb;
+}
+
+.ClickableBlockNumber {
+  cursor: pointer;
+  text-decoration: underline;
+}
+
+.BlockDetails {
+  text-align: left;
+}
+.BlockDetailsTable {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 20px;
+}
+
+.BlockDetailsTable td,
+.BlockDetailsTable th {
+  padding: 8px;
+  border: 1px solid #ddd;
+}
+
+.BlockDetailsTable th {
+  background-color: #f2f2f2;
+  font-weight: bold;
+}
+
+.BlockDetailsTable tr:nth-child(even) {
+  background-color: #f9f9f9;
+}
+
+.BlockDetailsTable tr:hover {
+  background-color: #e9e9e9;
 }
 
 @keyframes App-logo-spin {
